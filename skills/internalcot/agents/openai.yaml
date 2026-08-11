@@ -1,0 +1,6 @@
+interface:
+  display_name: "InternalCoT"
+  short_description: "Record visible model-authored working notes"
+  default_prompt: "Use $internalcot to enable visible working notes for subsequent responses."
+policy:
+  allow_implicit_invocation: false

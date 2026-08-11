@@ -1,25 +1,100 @@
 # internalcot
 
-`internalcot` asks a model to put its working notes in a visible function call before answering.
-The notes are model-authored scratchpad text, not access to hidden reasoning tokens.
+`internalcot` gives coding agents a persistent, observable working-notes mode. An installed skill tells the current agent to call a small local CLI before substantive responses, so its model-authored scratchpad appears in the tool transcript.
 
-## Install
+This does not reveal private or provider-hidden chain-of-thought. It records notes that the model deliberately writes for observation.
+
+## Install the CLI and skill
+
+Run the guided setup:
+
+```sh
+npx internalcot@latest setup
+```
+
+Choose **CLI + skill**, then select Codex, Claude Code, or both. Setup shows the exact global command and skill paths before it changes anything.
+
+For a non-interactive Codex install:
+
+```sh
+npx internalcot@latest setup --codex --yes
+```
+
+Use `--project` to place the skill in the current repository instead of your home directory. Other useful variants are:
+
+```sh
+# Preview without making changes
+npx internalcot@latest setup --codex --project --dry-run
+
+# The persistent command already exists
+npx internalcot@latest setup --codex --skill-only --yes
+
+# Install only the command
+npx internalcot@latest setup --cli-only --yes
+```
+
+Setup writes only the bundled `internalcot` skill files. Re-running it reports an unchanged installation or updates those files while preserving unrelated files in the same directory.
+
+You can also install each part manually:
 
 ```sh
 npm install --global internalcot
+npx skills add morluto/internalcot
 ```
 
-Or run it without a global install:
+Restart your coding agent if the new skill does not appear immediately.
+
+## Turn working notes on
+
+Explicitly invoke the skill without giving it a task:
+
+```text
+$internalcot
+```
+
+The mode remains active for subsequent requests. The agent calls `internalcot note` before substantive work and again only when it has materially new reasoning state.
+
+Turn it off with:
+
+```text
+$internalcot off
+```
+
+The toggle is conversational state carried by the skill instructions. It does not change the host's native reasoning setting or install a new first-class tool dynamically.
+
+## Use the working-notes CLI directly
+
+Pass a short note as arguments:
 
 ```sh
-npx internalcot@latest --help
+internalcot note "Check the equality case before drafting."
 ```
 
-## Test with an OpenAI API key
+For multiline notes, use stdin:
 
-Create a project key in the [OpenAI dashboard](https://platform.openai.com/api-keys). Never paste a key into a prompt, issue, chat, source file, or command that will be saved in shell history. Revoke and replace any key that has been exposed.
+```sh
+internalcot note <<'INTERNALCOT'
+Goal: prove descent from the equation.
+Constraint: handle every equality case.
+Check: verify the mutated coordinate stays positive.
+INTERNALCOT
+```
 
-In Bash on macOS or Linux, read the key silently into the current shell and run a small test:
+The note is written to stderr with an `internalcot>` prefix. Stdout receives a small JSON receipt:
+
+```json
+{"recorded":true,"next":"Continue the work. Record another note only for materially new reasoning state."}
+```
+
+The command does not use the network, require an API key, or save notes to disk. The coding agent's tool transcript is the record.
+
+## Run the API observation POC
+
+The separate `observe` command preserves the original experiment: it starts a second model through the OpenAI Responses API, sets its reasoning effort to `none` by default, forces an `internalcot` function call on the first turn, streams those tool arguments as a visible scratchpad, and then streams the final answer.
+
+Create a project key in the [OpenAI dashboard](https://platform.openai.com/api-keys). Never paste a key into a prompt, issue, chat, source file, or shell command that will be saved in history. Revoke and replace any exposed key.
+
+In Bash on macOS or Linux:
 
 ```sh
 # Use OpenAI directly, not a previously configured compatible gateway.
@@ -28,56 +103,22 @@ unset OPENAI_BASE_URL
 read -rsp "OpenAI API key: " OPENAI_API_KEY && echo
 export OPENAI_API_KEY
 
-npx --yes internalcot@latest --model gpt-5.6-luna \
+internalcot observe --model gpt-5.6-luna \
   "Work out 17 * 23, then give only the product."
-```
 
-The terminal should first show an italic `internalcot>` scratchpad, followed by the final answer. The scratchpad is written to stderr and the answer to stdout. To inspect them separately:
-
-```sh
-npx --yes internalcot@latest --model gpt-5.6-luna \
-  "Check whether 17 * 23 = 391" \
-  >answer.txt 2>scratchpad.txt
-```
-
-Remove the key from the shell when you are finished:
-
-```sh
 unset OPENAI_API_KEY
 ```
 
-The smoke test uses `gpt-5.6-luna` to keep cost down. The default is `gpt-5.6-sol`; both support function tools and `reasoning.effort: none`. See the [OpenAI model catalog](https://developers.openai.com/api/docs/models) and [API quickstart](https://developers.openai.com/api/docs/quickstart).
+Scratchpad output goes to stderr and the final answer to stdout, so they can be captured separately:
+
+```sh
+internalcot observe "Check whether 17 * 23 = 391" \
+  >answer.txt 2>scratchpad.txt
+```
+
+The default observation model is `gpt-5.6-sol`. See the [OpenAI model catalog](https://developers.openai.com/api/docs/models) and [API quickstart](https://developers.openai.com/api/docs/quickstart).
 
 If you intentionally use an OpenAI-compatible gateway, set `OPENAI_BASE_URL` only for that gateway and use a credential issued by that provider.
-
-## Usage
-
-```sh
-internalcot "Solve this problem"
-cat problem.md | internalcot
-internalcot --model gpt-5.6-sol --effort none "Check this proof"
-```
-
-Scratchpad output goes to stderr; the final answer goes to stdout so it can be redirected or piped.
-
-```sh
-internalcot "Check this proof" >answer.md 2>scratchpad.txt
-```
-
-Run `internalcot --help` for all options.
-
-## How it works
-
-The CLI owns the Responses API request. It sets native reasoning effort to `none` by default,
-requires an `internalcot` function call on the first turn, displays that call's arguments, and
-then returns the tool result so the model can produce its final answer.
-
-This does not reveal private or hidden chain-of-thought. It elicits a separate, observable
-scratchpad whose usefulness and faithfulness should be evaluated independently.
-
-## Credit
-
-The idea and original proof of concept are by [Can Bölük (@_can1357)](https://x.com/_can1357/status/2087228354399265125).
 
 ## Development
 
@@ -89,16 +130,23 @@ npm run build
 npm link
 ```
 
-## Publishing
-
-The package is public and unscoped. Before the first release:
+Validate the bundled skill with:
 
 ```sh
-npm login
+npx skills add . --list
+```
+
+## Publishing
+
+```sh
 npm whoami
 npm run prepublishOnly
-npm pack --dry-run
+npm pack --dry-run --json
 npm publish
 ```
 
-Check that `internalcot` is still available on npm immediately before publishing.
+Verify the packed `dist/cli.js` is executable and the `skills/internalcot` directory is included before publishing.
+
+## Credit
+
+The idea and original proof of concept are by [Can Bölük (@_can1357)](https://x.com/_can1357/status/2087228354399265125).

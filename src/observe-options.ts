@@ -2,8 +2,8 @@ import type { ReasoningEffort } from "./model.js";
 
 const EFFORTS: ReadonlySet<string> = new Set(["none", "low", "medium", "high", "xhigh", "max"]);
 
-/** Parsed command-line options. */
-export type CliOptions = {
+/** Parsed options for the API-backed observation POC. */
+export type ObserveOptions = {
   readonly model: string;
   readonly effort: ReasoningEffort;
   readonly maxTurns: number;
@@ -19,8 +19,8 @@ function nextValue(args: ReadonlyArray<string>, index: number, option: string): 
   return value;
 }
 
-/** Parse the small, dependency-free internalcot command surface. */
-export function parseCliOptions(args: ReadonlyArray<string>): CliOptions {
+/** Parse options accepted after `internalcot observe`. */
+export function parseObserveOptions(args: ReadonlyArray<string>): ObserveOptions {
   let model = "gpt-5.6-sol";
   let effort: ReasoningEffort = "none";
   let maxTurns = 8;
@@ -58,7 +58,7 @@ export function parseCliOptions(args: ReadonlyArray<string>): CliOptions {
       continue;
     }
     if (argument?.startsWith("-")) {
-      throw new Error(`Unknown option: ${argument}`);
+      throw new Error(`Unknown observe option: ${argument}`);
     }
     if (argument !== undefined) {
       promptParts.push(argument);

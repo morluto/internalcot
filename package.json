@@ -1,7 +1,7 @@
 {
   "name": "internalcot",
-  "version": "0.1.1",
-  "description": "Expose a model-authored scratchpad through a forced function call.",
+  "version": "0.2.0",
+  "description": "Visible working notes for coding agents, plus an API observation POC.",
   "license": "MIT",
   "author": "morluto",
   "repository": {
@@ -15,6 +15,7 @@
   "keywords": [
     "ai",
     "cli",
+    "agent-skill",
     "reasoning",
     "scratchpad",
     "openai"
@@ -24,10 +25,11 @@
     "internalcot": "./dist/cli.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "skills"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "node scripts/clean.mjs && tsc -p tsconfig.build.json",
     "check": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "prepack": "npm run build && node -e \"require('node:fs').chmodSync('dist/cli.js', 0o755)\"",
@@ -37,9 +39,10 @@
     "access": "public"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=22.13.0"
   },
   "dependencies": {
+    "@inquirer/prompts": "8.5.2",
     "openai": "7.4.0"
   },
   "devDependencies": {

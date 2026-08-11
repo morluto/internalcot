@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { parseCliOptions } from "../src/cli-options.js";
+import { parseObserveOptions } from "../src/observe-options.js";
 
-describe("parseCliOptions", () => {
-  it("uses small, documented defaults", () => {
-    expect(parseCliOptions(["explain", "this"])).toEqual({
+describe("parseObserveOptions", () => {
+  it("uses the POC defaults", () => {
+    expect(parseObserveOptions(["explain", "this"])).toEqual({
       model: "gpt-5.6-sol",
       effort: "none",
       maxTurns: 8,
@@ -15,7 +15,7 @@ describe("parseCliOptions", () => {
 
   it("parses supported options", () => {
     expect(
-      parseCliOptions([
+      parseObserveOptions([
         "--model",
         "gpt-5.6-luna",
         "--effort",
@@ -36,8 +36,8 @@ describe("parseCliOptions", () => {
   it.each([
     [["--effort", "off"], "Invalid effort: off"],
     [["--max-turns", "0"], "Invalid max turns: 0"],
-    [["--wat"], "Unknown option: --wat"],
+    [["--wat"], "Unknown observe option: --wat"],
   ] as const)("rejects invalid input %#", (args, message) => {
-    expect(() => parseCliOptions(args)).toThrow(message);
+    expect(() => parseObserveOptions(args)).toThrow(message);
   });
 });
