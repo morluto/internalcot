@@ -9,7 +9,46 @@ The notes are model-authored scratchpad text, not access to hidden reasoning tok
 npm install --global internalcot
 ```
 
-Set `OPENAI_API_KEY` before running the CLI. `OPENAI_BASE_URL` can point the OpenAI SDK at a compatible gateway.
+Or run it without a global install:
+
+```sh
+npx internalcot@latest --help
+```
+
+## Test with an OpenAI API key
+
+Create a project key in the [OpenAI dashboard](https://platform.openai.com/api-keys). Never paste a key into a prompt, issue, chat, source file, or command that will be saved in shell history. Revoke and replace any key that has been exposed.
+
+In Bash on macOS or Linux, read the key silently into the current shell and run a small test:
+
+```sh
+# Use OpenAI directly, not a previously configured compatible gateway.
+unset OPENAI_BASE_URL
+
+read -rsp "OpenAI API key: " OPENAI_API_KEY && echo
+export OPENAI_API_KEY
+
+npx --yes internalcot@latest --model gpt-5.6-luna \
+  "Work out 17 * 23, then give only the product."
+```
+
+The terminal should first show an italic `internalcot>` scratchpad, followed by the final answer. The scratchpad is written to stderr and the answer to stdout. To inspect them separately:
+
+```sh
+npx --yes internalcot@latest --model gpt-5.6-luna \
+  "Check whether 17 * 23 = 391" \
+  >answer.txt 2>scratchpad.txt
+```
+
+Remove the key from the shell when you are finished:
+
+```sh
+unset OPENAI_API_KEY
+```
+
+The smoke test uses `gpt-5.6-luna` to keep cost down. The default is `gpt-5.6-sol`; both support function tools and `reasoning.effort: none`. See the [OpenAI model catalog](https://developers.openai.com/api/docs/models) and [API quickstart](https://developers.openai.com/api/docs/quickstart).
+
+If you intentionally use an OpenAI-compatible gateway, set `OPENAI_BASE_URL` only for that gateway and use a credential issued by that provider.
 
 ## Usage
 
