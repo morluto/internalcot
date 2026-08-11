@@ -1,0 +1,50 @@
+{
+  "name": "internalcot",
+  "version": "0.1.0",
+  "description": "Expose a model-authored scratchpad through a forced function call.",
+  "license": "MIT",
+  "author": "morluto",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/morluto/internalcot.git"
+  },
+  "bugs": {
+    "url": "https://github.com/morluto/internalcot/issues"
+  },
+  "homepage": "https://github.com/morluto/internalcot#readme",
+  "keywords": [
+    "ai",
+    "cli",
+    "reasoning",
+    "scratchpad",
+    "openai"
+  ],
+  "type": "module",
+  "bin": {
+    "internalcot": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run check && npm test"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "openai": "7.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "typescript": "7.0.2",
+    "vitest": "4.1.10"
+  }
+}
