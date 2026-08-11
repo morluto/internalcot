@@ -6,6 +6,7 @@ import { runInternalCot } from "./internalcot.js";
 import { parseNoteOptions } from "./note-options.js";
 import { OpenAIModelClient } from "./openai-model.js";
 import { parseObserveOptions } from "./observe-options.js";
+import { readRuntimeSkill } from "./runtime-skill.js";
 import { runSetup } from "./setup-command.js";
 import {
   formatWorkingNote,
@@ -17,6 +18,7 @@ const USAGE = `Usage: internalcot <command> [options]
 
 Commands:
   setup                 Install the CLI and agent skill
+  skill                 Print instructions matching this CLI version
   note [working notes]  Record visible working notes locally
   observe [prompt]      Run the API-backed observation POC
 
@@ -31,6 +33,10 @@ Options:
       --no-pace     Write the completed note immediately instead of pacing it
       --receipt     Print a machine-readable JSON receipt on stdout
   -h, --help        Show this help`;
+
+const SKILL_USAGE = `Usage: internalcot skill
+
+Print the internalcot workflow instructions bundled with this CLI version.`;
 
 const OBSERVE_USAGE = `Usage: internalcot observe [options] [prompt]
 
@@ -78,6 +84,18 @@ async function runNote(args: ReadonlyArray<string>): Promise<void> {
   if (options.receipt) {
     process.stdout.write(result.output.stdout);
   }
+}
+
+async function runSkill(args: ReadonlyArray<string>): Promise<void> {
+  if (args.length === 1 && (args[0] === "--help" || args[0] === "-h")) {
+    process.stdout.write(`${SKILL_USAGE}\n`);
+    return;
+  }
+  if (args.length > 0) {
+    throw new Error('The "skill" command accepts no arguments. Run "internalcot skill --help".');
+  }
+  const instructions = await readRuntimeSkill();
+  process.stdout.write(instructions.endsWith("\n") ? instructions : `${instructions}\n`);
 }
 
 async function runObserve(args: ReadonlyArray<string>): Promise<void> {
@@ -140,6 +158,10 @@ async function main(): Promise<void> {
   }
   if (command === "setup") {
     await runSetup(args);
+    return;
+  }
+  if (command === "skill") {
+    await runSkill(args);
     return;
   }
   if (command === "observe") {

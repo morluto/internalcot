@@ -70,7 +70,10 @@ describe("setup", () => {
     const installCli = async () => undefined;
     await applySetup(initial, { installCli });
 
-    expect(await readFile(join(skillDirectory, "SKILL.md"), "utf8")).toContain("name: internalcot");
+    const installedSkill = await readFile(join(skillDirectory, "SKILL.md"), "utf8");
+    expect(installedSkill).toContain("name: internalcot");
+    expect(installedSkill).toContain("internalcot skill");
+    expect(installedSkill).not.toContain("internalcot note '");
     expect(await readFile(join(skillDirectory, "personal-notes.md"), "utf8")).toBe("keep me\n");
 
     const repeated = await planSetup({

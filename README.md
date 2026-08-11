@@ -29,14 +29,17 @@ npx internalcot@latest setup --codex --project --dry-run
 
 Setup writes only the bundled `internalcot` skill files. Re-running it reports an unchanged installation or updates those files while preserving unrelated files in the same directory.
 
-You can also install each part manually:
+The installed discovery skill is intentionally small. When `$internalcot` is invoked, it runs `internalcot skill` to load workflow instructions bundled with the installed CLI, so the instructions always match that CLI version.
+
+## Install the discovery skill only
+
+The internalcot skill is also distributed through [skills.sh](https://skills.sh/). Install only the discovery skill with:
 
 ```sh
-npm install --global internalcot
 npx skills add morluto/internalcot
 ```
 
-Restart your coding agent if the new skill does not appear immediately.
+This does not install the CLI. If it is missing, the discovery skill directs the user back to the recommended `npx internalcot@latest setup` flow. Restart your coding agent if the new skill does not appear immediately.
 
 ## Turn working notes on
 
@@ -55,6 +58,12 @@ $internalcot off
 ```
 
 The toggle is conversational state carried by the skill instructions. It does not change the host's native reasoning setting or install a new first-class tool dynamically.
+
+The installed skill loads the current workflow with:
+
+```sh
+internalcot skill
+```
 
 ## Use the working-notes CLI directly
 
@@ -138,7 +147,7 @@ npm pack --dry-run --json
 npm publish
 ```
 
-Verify the packed `dist/cli.js` is executable and the `skills/internalcot` directory is included before publishing.
+Verify the packed `dist/cli.js` is executable and the `skills/internalcot` and `skill-data/internalcot` directories are included before publishing.
 
 ## Credit
 

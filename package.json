@@ -26,6 +26,7 @@
   },
   "files": [
     "dist",
+    "skill-data",
     "skills"
   ],
   "scripts": {
