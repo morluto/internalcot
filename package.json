@@ -1,6 +1,6 @@
 {
   "name": "internalcot",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Expose a model-authored scratchpad through a forced function call.",
   "license": "MIT",
   "author": "morluto",
@@ -30,7 +30,7 @@
     "build": "tsc -p tsconfig.build.json",
     "check": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "prepack": "npm run build",
+    "prepack": "npm run build && node -e \"require('node:fs').chmodSync('dist/cli.js', 0o755)\"",
     "prepublishOnly": "npm run check && npm test"
   },
   "publishConfig": {
