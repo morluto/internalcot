@@ -12,7 +12,7 @@ Run the guided setup:
 npx internalcot@latest setup
 ```
 
-Choose **CLI + skill**, then select Codex, Claude Code, or both. Setup shows the exact global command and skill paths before it changes anything.
+Setup always installs the persistent CLI and its skill together. Select Codex, Claude Code, or both; setup shows the exact global command and skill paths before it changes anything.
 
 For a non-interactive Codex install:
 
@@ -20,17 +20,11 @@ For a non-interactive Codex install:
 npx internalcot@latest setup --codex --yes
 ```
 
-Use `--project` to place the skill in the current repository instead of your home directory. Other useful variants are:
+Use `--project` to place the skill in the current repository instead of your home directory. Preview the complete installation without making changes:
 
 ```sh
 # Preview without making changes
 npx internalcot@latest setup --codex --project --dry-run
-
-# The persistent command already exists
-npx internalcot@latest setup --codex --skill-only --yes
-
-# Install only the command
-npx internalcot@latest setup --cli-only --yes
 ```
 
 Setup writes only the bundled `internalcot` skill files. Re-running it reports an unchanged installation or updates those files while preserving unrelated files in the same directory.

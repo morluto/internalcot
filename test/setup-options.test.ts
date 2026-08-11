@@ -5,7 +5,6 @@ import { parseSetupOptions } from "../src/setup-options.js";
 describe("parseSetupOptions", () => {
   it("parses a non-interactive project setup", () => {
     expect(parseSetupOptions(["--codex", "--project", "--yes", "--dry-run"])).toEqual({
-      mode: undefined,
       targets: ["codex"],
       project: true,
       yes: true,
@@ -19,9 +18,8 @@ describe("parseSetupOptions", () => {
   });
 
   it.each([
-    [["--cli-only", "--skill-only"], "Choose only one"],
-    [["--cli-only", "--codex"], "--cli-only cannot be combined"],
-    [["--cli-only", "--project"], "--project has no effect"],
+    [["--cli-only"], "Unknown setup option: --cli-only"],
+    [["--skill-only"], "Unknown setup option: --skill-only"],
     [["--wat"], "Unknown setup option: --wat"],
   ] as const)("rejects invalid input %#", (args, message) => {
     expect(() => parseSetupOptions(args)).toThrow(message);

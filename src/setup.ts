@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 
-import type { SetupMode, SetupTarget } from "./setup-options.js";
+import type { SetupTarget } from "./setup-options.js";
 
 const SKILL_FILES = ["SKILL.md", "agents/openai.yaml"] as const;
 
@@ -19,15 +19,11 @@ export interface SkillInstall {
 }
 
 export interface SetupPlan {
-  readonly mode: SetupMode;
-  readonly scope: "global" | "project";
-  readonly installCli: boolean;
   readonly packageSpec: string;
   readonly skills: ReadonlyArray<SkillInstall>;
 }
 
 export interface PlanSetupInput {
-  readonly mode: SetupMode;
   readonly targets: ReadonlyArray<SetupTarget>;
   readonly project: boolean;
   readonly cwd?: string;
@@ -36,7 +32,6 @@ export interface PlanSetupInput {
 }
 
 export interface ApplySetupResult {
-  readonly cliInstalled: boolean;
   readonly skillDirectories: ReadonlyArray<string>;
 }
 
@@ -45,33 +40,29 @@ export interface SetupRuntime {
 }
 
 export async function planSetup(input: PlanSetupInput): Promise<SetupPlan> {
+  if (input.targets.length === 0) {
+    throw new Error("Setup requires at least one skill target");
+  }
+
   const root = input.project ? (input.cwd ?? process.cwd()) : (input.home ?? homedir());
-  const skills = input.mode === "cli-only"
-    ? []
-    : await Promise.all(input.targets.map(async (target) => {
-        const directory = skillDirectory(target, input.project, root);
-        return {
-          target,
-          label: target === "codex" ? "Codex" : "Claude Code",
-          directory,
-          status: await inspectSkill(directory),
-        } satisfies SkillInstall;
-      }));
+  const skills = await Promise.all(input.targets.map(async (target) => {
+    const directory = skillDirectory(target, input.project, root);
+    return {
+      target,
+      label: target === "codex" ? "Codex" : "Claude Code",
+      directory,
+      status: await inspectSkill(directory),
+    } satisfies SkillInstall;
+  }));
 
   return {
-    mode: input.mode,
-    scope: input.project ? "project" : "global",
-    installCli: input.mode !== "skill-only",
     packageSpec: `internalcot@${input.packageVersion ?? await readPackageVersion()}`,
     skills,
   };
 }
 
 export function formatSetupPlan(plan: SetupPlan): string {
-  const lines = ["Setup plan"];
-  if (plan.installCli) {
-    lines.push(`  install  CLI ${plan.packageSpec} globally`);
-  }
+  const lines = ["Setup plan", `  install  CLI ${plan.packageSpec} globally`];
   for (const skill of plan.skills) {
     const verb = skill.status === "unchanged" ? "keep" : skill.status;
     lines.push(`  ${verb.padEnd(7)} ${skill.label} skill at ${skill.directory}`);
@@ -83,9 +74,7 @@ export async function applySetup(
   plan: SetupPlan,
   runtime: SetupRuntime = {},
 ): Promise<ApplySetupResult> {
-  if (plan.installCli) {
-    await (runtime.installCli ?? installPersistentCli)(plan.packageSpec);
-  }
+  await (runtime.installCli ?? installPersistentCli)(plan.packageSpec);
 
   const installed: Array<string> = [];
   for (const skill of plan.skills) {
@@ -95,7 +84,7 @@ export async function applySetup(
     installed.push(skill.directory);
   }
 
-  return { cliInstalled: plan.installCli, skillDirectories: installed };
+  return { skillDirectories: installed };
 }
 
 export function skillDirectory(target: SetupTarget, project: boolean, root: string): string {

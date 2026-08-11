@@ -14,11 +14,19 @@ afterEach(async () => {
 });
 
 describe("setup", () => {
+  it("rejects a CLI-only plan without a skill target", async () => {
+    await expect(planSetup({
+      targets: [],
+      project: false,
+      home: "/example/home",
+      packageVersion: "1.2.3",
+    })).rejects.toThrow("Setup requires at least one skill target");
+  });
+
   it("plans exact project paths without changing the project", async () => {
     const root = await temporaryDirectory();
 
     const plan = await planSetup({
-      mode: "bundle",
       targets: ["codex", "claude"],
       project: true,
       cwd: root,
@@ -26,9 +34,6 @@ describe("setup", () => {
     });
 
     expect(plan).toEqual({
-      mode: "bundle",
-      scope: "project",
-      installCli: true,
       packageSpec: "internalcot@1.2.3",
       skills: [
         {
@@ -48,14 +53,13 @@ describe("setup", () => {
     expect(formatSetupPlan(plan)).toContain("install  CLI internalcot@1.2.3 globally");
   });
 
-  it("installs a skill, preserves unrelated files, and becomes repeat-safe", async () => {
+  it("installs the CLI and skill, preserves unrelated files, and becomes repeat-safe", async () => {
     const root = await temporaryDirectory();
     const skillDirectory = join(root, ".agents", "skills", "internalcot");
     await mkdir(skillDirectory, { recursive: true });
     await writeFile(join(skillDirectory, "personal-notes.md"), "keep me\n");
 
     const initial = await planSetup({
-      mode: "skill-only",
       targets: ["codex"],
       project: true,
       cwd: root,
@@ -63,43 +67,28 @@ describe("setup", () => {
     });
     expect(initial.skills[0]?.status).toBe("update");
 
-    await applySetup(initial);
+    const installCli = async () => undefined;
+    await applySetup(initial, { installCli });
 
     expect(await readFile(join(skillDirectory, "SKILL.md"), "utf8")).toContain("name: internalcot");
     expect(await readFile(join(skillDirectory, "personal-notes.md"), "utf8")).toBe("keep me\n");
 
     const repeated = await planSetup({
-      mode: "skill-only",
       targets: ["codex"],
       project: true,
       cwd: root,
       packageVersion: "1.2.3",
     });
     expect(repeated.skills[0]?.status).toBe("unchanged");
-    await expect(applySetup(repeated)).resolves.toEqual({
-      cliInstalled: false,
+    await expect(applySetup(repeated, { installCli })).resolves.toEqual({
       skillDirectories: [skillDirectory],
     });
-  });
-
-  it("does not plan skill writes in CLI-only mode", async () => {
-    const plan = await planSetup({
-      mode: "cli-only",
-      targets: [],
-      project: false,
-      home: "/example/home",
-      packageVersion: "1.2.3",
-    });
-
-    expect(plan.installCli).toBe(true);
-    expect(plan.skills).toEqual([]);
   });
 
   it("installs the exact CLI version before writing its dependent skill", async () => {
     const root = await temporaryDirectory();
     const calls: Array<string> = [];
     const plan = await planSetup({
-      mode: "bundle",
       targets: ["codex"],
       project: true,
       cwd: root,
@@ -120,7 +109,6 @@ describe("setup", () => {
   it("does not install a dependent skill when the CLI install fails", async () => {
     const root = await temporaryDirectory();
     const plan = await planSetup({
-      mode: "bundle",
       targets: ["codex"],
       project: true,
       cwd: root,

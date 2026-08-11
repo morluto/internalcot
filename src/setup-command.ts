@@ -1,9 +1,9 @@
-import { checkbox, confirm, select } from "@inquirer/prompts";
+import { checkbox, confirm } from "@inquirer/prompts";
 import { access } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-import { parseSetupOptions, type SetupMode, type SetupTarget } from "./setup-options.js";
+import { parseSetupOptions, type SetupTarget } from "./setup-options.js";
 import { applySetup, formatSetupPlan, planSetup } from "./setup.js";
 
 export const SETUP_USAGE = `Usage: internalcot setup [options]
@@ -13,8 +13,6 @@ Install the internalcot CLI and skill for your coding agent.
 Options:
       --codex       Install the skill for Codex
       --claude      Install the skill for Claude Code
-      --cli-only    Install only the persistent CLI command
-      --skill-only  Install only the skill (requires an existing CLI)
   -p, --project     Install skills in the current project instead of globally
   -y, --yes         Accept the displayed plan without prompting
       --dry-run     Display the plan without changing anything
@@ -33,16 +31,13 @@ export async function runSetup(args: ReadonlyArray<string>): Promise<void> {
   }
 
   const interactive = process.stdin.isTTY && process.stderr.isTTY && !options.yes;
-  const mode = options.mode ?? (interactive ? await promptForMode() : "bundle");
-  const targets = mode === "cli-only"
-    ? []
-    : options.targets.length > 0
-      ? options.targets
-      : interactive
-        ? await promptForTargets()
-        : nonInteractiveTargetsRequired();
+  const targets = options.targets.length > 0
+    ? options.targets
+    : interactive
+      ? await promptForTargets()
+      : nonInteractiveTargetsRequired();
 
-  const plan = await planSetup({ mode, targets, project: options.project });
+  const plan = await planSetup({ targets, project: options.project });
   process.stderr.write(formatSetupPlan(plan));
 
   if (options.dryRun) {
@@ -59,30 +54,7 @@ export async function runSetup(args: ReadonlyArray<string>): Promise<void> {
   }
 
   const result = await applySetup(plan);
-  process.stdout.write(formatResult(result.cliInstalled, result.skillDirectories));
-}
-
-async function promptForMode(): Promise<SetupMode> {
-  return select<SetupMode>({
-    message: "What should internalcot install?",
-    choices: [
-      {
-        name: "CLI + skill (recommended)",
-        value: "bundle",
-        description: "Install the persistent command and agent instructions.",
-      },
-      {
-        name: "Skill only",
-        value: "skill-only",
-        description: "Use this when the internalcot command is already installed.",
-      },
-      {
-        name: "CLI only",
-        value: "cli-only",
-        description: "Install the command without agent instructions.",
-      },
-    ],
-  }, promptContext);
+  process.stdout.write(formatResult(result.skillDirectories));
 }
 
 async function promptForTargets(): Promise<ReadonlyArray<SetupTarget>> {
@@ -117,11 +89,8 @@ function detectedLabel(label: string, detected: boolean): string {
   return detected ? `${label} (detected)` : label;
 }
 
-function formatResult(cliInstalled: boolean, directories: ReadonlyArray<string>): string {
-  const lines = ["internalcot setup complete."];
-  if (cliInstalled) {
-    lines.push("CLI: installed");
-  }
+function formatResult(directories: ReadonlyArray<string>): string {
+  const lines = ["internalcot setup complete.", "CLI: installed"];
   for (const directory of directories) {
     lines.push(`Skill: ${directory}`);
   }
