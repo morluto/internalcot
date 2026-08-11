@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 
-const RUNTIME_SKILL_URL = new URL("../skill-data/internalcot/SKILL.md", import.meta.url);
+const RUNTIME_WORKFLOW_URL = new URL("../runtime/internalcot-workflow.md", import.meta.url);
 const COMMAND_BY_RUNNER = {
   installed: "internalcot",
   npx: "npx --yes internalcot@latest",
@@ -14,7 +14,7 @@ export async function readRuntimeSkill(
   runner: RuntimeSkillRunner = "installed",
 ): Promise<string> {
   try {
-    const source = await readFile(RUNTIME_SKILL_URL, "utf8");
+    const source = await readFile(RUNTIME_WORKFLOW_URL, "utf8");
     return source.replaceAll("{{internalcot}}", COMMAND_BY_RUNNER[runner]);
   } catch (cause: unknown) {
     throw new Error(

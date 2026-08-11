@@ -1,132 +1,152 @@
 # internalcot
 
-`internalcot` gives coding agents a persistent, observable working-notes mode. An installed skill tells the current agent to call a small local CLI before substantive responses, so its model-authored scratchpad appears in the tool transcript.
+[English](README.md) · [简体中文](README.zh-CN.md)
 
-This does not reveal private or provider-hidden chain-of-thought. It records notes that the model deliberately writes for observation.
+**Make agents show their full chain of thought.**
 
-## Install the CLI and skill
-
-Run the guided setup:
+`internalcot` adds an opt-in working-notes mode to Codex and Claude Code. Turn it on once and the agent externalizes its goals, constraints, plan changes, evidence, and checks in the normal tool transcript for the full conversation.
 
 ```sh
 npx internalcot@latest setup
 ```
 
-Setup always installs the persistent CLI and its skill together. Select Codex, Claude Code, or both; setup shows the exact global command and skill paths before it changes anything.
+```text
+› $internalcot
 
-For a non-interactive Codex install:
+• internalcot mode is active for this conversation.
+
+› Recheck this proof. I think the published answer is wrong.
+
+• internalcot> Goal: reassess the proof instead of trusting its prior conclusion.
+  Check: verify the moving boundary and separate computation from theorem.
+```
+
+The result is a persistent, readable chain of thought you can inspect as the agent works. The agent writes its reasoning into visible working notes.
+
+## Install
+
+The setup command above installs the CLI and skill together. It detects Codex and Claude Code, shows the exact global command and skill paths, and asks before changing anything. After installation, restart your coding agent if the skill does not appear immediately.
+
+For unattended Codex setup:
 
 ```sh
 npx internalcot@latest setup --codex --yes
 ```
 
-Use `--project` to place the skill in the current repository instead of your home directory. Preview the complete installation without making changes:
+Use `--project` to install the skill in the current repository instead of your home directory. Preview every change without applying it:
 
 ```sh
-# Preview without making changes
 npx internalcot@latest setup --codex --project --dry-run
 ```
 
-Setup writes only the bundled `internalcot` skill files. Re-running it reports an unchanged installation or updates those files while preserving unrelated files in the same directory.
+Re-running setup updates internalcot's own files and preserves unrelated files in the same skill directory.
 
-The installed discovery skill is intentionally small. When `$internalcot` is invoked, it runs `internalcot skill` to load workflow instructions bundled with the installed CLI, so the instructions always match that CLI version.
+## Use it
 
-## Install the discovery skill only
-
-The internalcot skill is also distributed through [skills.sh](https://skills.sh/). Install only the discovery skill with:
-
-```sh
-npx skills add morluto/internalcot
-```
-
-This does not install the CLI. If it is missing, the discovery skill uses `npx --yes internalcot@latest` for workflow and note calls, so skill-only installation still works. The recommended setup remains faster because it installs the CLI persistently. Restart your coding agent if the new skill does not appear immediately.
-
-## Turn working notes on
-
-Explicitly invoke the skill without giving it a task:
+Enable visible working notes:
 
 ```text
 $internalcot
 ```
 
-The mode remains active for subsequent requests. The agent calls `internalcot note` before substantive work and again only when it has materially new reasoning state. The CLI output is the visible note, so the agent does not repeat it in prose.
+The mode remains active for every response in the current conversation, including across tool calls and context compaction. The agent records a new note before substantive work and when new evidence, a failed check, or a changed plan materially alters its reasoning.
 
-Turn it off with:
+Disable it explicitly:
 
 ```text
 $internalcot off
 ```
 
-The toggle is conversational state carried by the skill instructions. It does not change the host's native reasoning setting or install a new first-class tool dynamically.
+The mode is conversational state. It does not change the host's native reasoning setting, and a new conversation starts with internalcot off.
 
-The installed skill loads the current workflow with:
+## What appears in the transcript
 
-```sh
-internalcot skill
+A useful note captures the current reasoning state, not a polished explanation after the fact:
+
+```text
+internalcot> Goal: find why the refresh token is rejected only after rotation.
+Constraint: preserve existing session data and do not weaken replay protection.
+Evidence: the second request reads the old token family before the transaction commits.
+Check: reproduce through the public login flow before changing storage code.
 ```
 
-For a skill-only installation without a persistent CLI, the discovery skill loads an npx-ready workflow with:
+The CLI prints notes in small, append-only chunks so hosts that stream process output can display them progressively. Hosts that buffer output show the same completed note at once. Either way, the note was authored before the command began; pacing is presentation, not access to hidden token generation.
+
+## Install from skills.sh
+
+The discovery skill is also available on [skills.sh](https://www.skills.sh/morluto/internalcot/internalcot):
+
+```sh
+npx skills add morluto/internalcot
+```
+
+This installs only the skill. If the persistent CLI is unavailable, the skill runs the current package through npx instead:
 
 ```sh
 npx --yes internalcot@latest skill --npx
 ```
 
-## Use the working-notes CLI directly
+That workflow uses `npx --yes internalcot@latest note` for its notes. The recommended `setup` command remains faster because it installs the CLI persistently.
 
-Pass a short note as one quoted argument:
+## How the skill stays current
+
+The installed `SKILL.md` is a small discovery stub. On activation it asks the CLI for instructions matching the installed version:
 
 ```sh
-internalcot note "Check the equality case before drafting."
+internalcot skill
 ```
 
-The CLI displays the completed note in small, append-only chunks and writes nothing to stdout by default. This paced display works in hosts that stream process output and safely appears all at once in hosts that buffer it. It is presentation of an already-authored note, not token-by-token access to hidden reasoning.
+The full workflow ships inside the npm package. Updating the CLI therefore updates the note contract without leaving an older copied skill behind.
 
-For immediate output or a machine-readable receipt:
+## Use the note command directly
+
+You can write a visible note without enabling the conversational mode:
+
+```sh
+internalcot note 'Check the equality case before drafting.'
+```
+
+Notes go to stderr with an `internalcot>` prefix. Output is paced and stdout stays empty by default. Use `--no-pace` for immediate output or `--receipt` for a machine-readable result:
 
 ```sh
 internalcot note --no-pace 'Check the equality case.'
 internalcot note --receipt 'Check the equality case.'
 ```
 
-The note is written to stderr with an `internalcot>` prefix. With `--receipt`, stdout receives:
-
 ```json
 {"recorded":true,"next":"Continue the work. Record another note only for materially new reasoning state."}
 ```
 
-The command does not use the network, require an API key, or save notes to disk. The coding agent's tool transcript is the record.
+The command does not use the network, require an API key, or save notes separately. The coding agent's tool transcript is the record.
 
-## Run the API observation POC
+## API observation POC
 
-The separate `observe` command preserves the original experiment: it starts a second model through the OpenAI Responses API, sets its reasoning effort to `none` by default, forces an `internalcot` function call on the first turn, streams those tool arguments as a visible scratchpad, and then streams the final answer.
+`internalcot observe` preserves the original experiment behind this project. It starts a separate model through the OpenAI Responses API, forces a visible scratchpad tool call, streams that tool input, and then streams the answer.
 
-Create a project key in the [OpenAI dashboard](https://platform.openai.com/api-keys). Never paste a key into a prompt, issue, chat, source file, or shell command that will be saved in history. Revoke and replace any exposed key.
+This is a test harness for a separate API request, not the normal skill workflow. It requires an OpenAI API key and may incur API charges.
 
-In Bash on macOS or Linux:
+Create a project key in the [OpenAI dashboard](https://platform.openai.com/api-keys). Never paste a key into a prompt, issue, source file, or shell command saved in history.
 
 ```sh
-# Use OpenAI directly, not a previously configured compatible gateway.
 unset OPENAI_BASE_URL
 
 read -rsp "OpenAI API key: " OPENAI_API_KEY && echo
 export OPENAI_API_KEY
 
 internalcot observe --model gpt-5.6-luna \
-  "Work out 17 * 23, then give only the product."
+  'Work out 17 * 23, then give only the product.'
 
 unset OPENAI_API_KEY
 ```
 
-Scratchpad output goes to stderr and the final answer to stdout, so they can be captured separately:
+Scratchpad output goes to stderr and the final answer to stdout:
 
 ```sh
-internalcot observe "Check whether 17 * 23 = 391" \
+internalcot observe 'Check whether 17 * 23 = 391' \
   >answer.txt 2>scratchpad.txt
 ```
 
 The default observation model is `gpt-5.6-sol`. See the [OpenAI model catalog](https://developers.openai.com/api/docs/models) and [API quickstart](https://developers.openai.com/api/docs/quickstart).
-
-If you intentionally use an OpenAI-compatible gateway, set `OPENAI_BASE_URL` only for that gateway and use a credential issued by that provider.
 
 ## Development
 
@@ -138,7 +158,7 @@ npm run build
 npm link
 ```
 
-Validate the bundled skill with:
+Validate the public discovery skill with:
 
 ```sh
 npx skills add . --list
@@ -153,8 +173,12 @@ npm pack --dry-run --json
 npm publish
 ```
 
-Verify the packed `dist/cli.js` is executable and the `skills/internalcot` and `skill-data/internalcot` directories are included before publishing.
+Verify that the packed `dist/cli.js` is executable and that both `skills/internalcot` and `runtime/internalcot-workflow.md` are included.
 
 ## Credit
 
 The idea and original proof of concept are by [Can Bölük (@_can1357)](https://x.com/_can1357/status/2087228354399265125).
+
+## License
+
+[MIT](LICENSE)

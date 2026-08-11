@@ -1,9 +1,4 @@
----
-name: internalcot
-description: Activate a persistent observable working-notes mode that calls the local internalcot CLI before substantive responses. Use only when the user explicitly invokes $internalcot, says "internalcot on", or asks to enable internalcot mode. Keep it active until the user explicitly turns it off. Do not trigger merely because a user asks to think carefully, reason deeply, or show work.
----
-
-# InternalCoT
+# InternalCoT workflow
 
 Enable persistent observable working notes. Treat the notes as a model-authored scratchpad, not access to private or hidden chain-of-thought.
 

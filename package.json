@@ -1,7 +1,7 @@
 {
   "name": "internalcot",
   "version": "0.2.1",
-  "description": "Visible working notes for coding agents, plus an API observation POC.",
+  "description": "Make agents show their full chain of thought with persistent, visible working notes.",
   "license": "MIT",
   "author": "morluto",
   "repository": {
@@ -16,17 +16,22 @@
     "ai",
     "cli",
     "agent-skill",
+    "chain-of-thought",
+    "claude-code",
+    "codex",
     "reasoning",
     "scratchpad",
-    "openai"
+    "openai",
+    "working-notes"
   ],
   "type": "module",
   "bin": {
     "internalcot": "./dist/cli.js"
   },
   "files": [
+    "README.zh-CN.md",
     "dist",
-    "skill-data",
+    "runtime",
     "skills"
   ],
   "scripts": {
