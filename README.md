@@ -36,6 +36,10 @@ then returns the tool result so the model can produce its final answer.
 This does not reveal private or hidden chain-of-thought. It elicits a separate, observable
 scratchpad whose usefulness and faithfulness should be evaluated independently.
 
+## Credit
+
+The idea and original proof of concept are by [Can Bölük (@_can1357)](https://x.com/_can1357/status/2087228354399265125).
+
 ## Development
 
 ```sh
