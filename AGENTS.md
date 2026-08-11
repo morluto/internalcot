@@ -1,5 +1,18 @@
 # Repository Guidelines
 
+## Product Model
+
+`internalcot` is an opt-in CLI and agent skill that asks coding agents to externalize detailed, model-authored reasoning into the tool transcript.
+
+The product has two modes:
+
+- Skill mode keeps `$internalcot` active for the current conversation and requires the host agent to call `internalcot note` throughout its reasoning.
+- `observe` reproduces the API experiment by forcing a separate model to call a visible scratchpad function and streaming its arguments before the answer.
+
+The CLI displays reasoning supplied by the model; it does not independently recover provider-hidden reasoning. Preserve this boundary when changing product copy, prompts, tool schemas, or tests.
+
+The design is inspired by Can Bölük's [original Python proof of concept](https://pasta.can.ac/omegiligox.py), especially its required first scratchpad call, detailed step-by-step prompt, and streamed function-call arguments.
+
 ## Project Structure & Module Organization
 
 - `src/` contains the strict TypeScript CLI and its modules: command parsing, setup/install logic, working-note formatting, runtime skill loading, and the OpenAI model adapter.
