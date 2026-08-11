@@ -8,6 +8,15 @@ describe("readRuntimeSkill", () => {
 
     expect(instructions).toContain("# InternalCoT");
     expect(instructions).toContain("internalcot note '");
-    expect(instructions).toContain("Keep the mode active for subsequent responses");
+    expect(instructions).toContain("Keep the mode active for every response");
+    expect(instructions).not.toContain("{{internalcot}}");
+  });
+
+  it("renders a self-contained npx workflow for skill-only installs", async () => {
+    const instructions = await readRuntimeSkill("npx");
+
+    expect(instructions).toContain("npx --yes internalcot@latest note '");
+    expect(instructions).not.toContain("`internalcot note`");
+    expect(instructions).not.toContain("{{internalcot}}");
   });
 });

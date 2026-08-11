@@ -1,11 +1,21 @@
 import { readFile } from "node:fs/promises";
 
 const RUNTIME_SKILL_URL = new URL("../skill-data/internalcot/SKILL.md", import.meta.url);
+const COMMAND_BY_RUNNER = {
+  installed: "internalcot",
+  npx: "npx --yes internalcot@latest",
+} as const;
+
+/** Supported command runners for the rendered workflow. */
+export type RuntimeSkillRunner = keyof typeof COMMAND_BY_RUNNER;
 
 /** Read the workflow instructions bundled with the running CLI version. */
-export async function readRuntimeSkill(): Promise<string> {
+export async function readRuntimeSkill(
+  runner: RuntimeSkillRunner = "installed",
+): Promise<string> {
   try {
-    return await readFile(RUNTIME_SKILL_URL, "utf8");
+    const source = await readFile(RUNTIME_SKILL_URL, "utf8");
+    return source.replaceAll("{{internalcot}}", COMMAND_BY_RUNNER[runner]);
   } catch (cause: unknown) {
     throw new Error(
       "Runtime skill instructions are unavailable. Reinstall with: npx internalcot@latest setup",

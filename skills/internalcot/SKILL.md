@@ -17,11 +17,17 @@ This file is a stable discovery skill. The installed CLI owns the version-matche
 
 When this skill is invoked:
 
-1. Run this standalone command before substantive work:
+1. Prefer the persistent CLI and run this standalone command before substantive work:
 
    ```bash
    internalcot skill
    ```
 
-2. Treat the returned Markdown as the authoritative instructions for the installed CLI version and follow it for the current conversation, including any substantive task in the invocation message.
-3. If the command is unavailable or does not support `skill`, do not improvise an older workflow or install software silently. Tell the user to run `npx internalcot@latest setup`, restart the coding agent if needed, and invoke `$internalcot` again.
+2. If that command is unavailable or does not support `skill`, load the same workflow without installing anything globally:
+
+   ```bash
+   npx --yes internalcot@latest skill --npx
+   ```
+
+3. Treat the returned Markdown as the authoritative instructions for the selected CLI version and follow it for the current conversation, including any substantive task in the invocation message.
+4. If both commands fail, do not improvise an older workflow or claim the mode is active. Give the exact recovery command `npx internalcot@latest setup`.

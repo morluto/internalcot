@@ -39,7 +39,7 @@ The internalcot skill is also distributed through [skills.sh](https://skills.sh/
 npx skills add morluto/internalcot
 ```
 
-This does not install the CLI. If it is missing, the discovery skill directs the user back to the recommended `npx internalcot@latest setup` flow. Restart your coding agent if the new skill does not appear immediately.
+This does not install the CLI. If it is missing, the discovery skill uses `npx --yes internalcot@latest` for workflow and note calls, so skill-only installation still works. The recommended setup remains faster because it installs the CLI persistently. Restart your coding agent if the new skill does not appear immediately.
 
 ## Turn working notes on
 
@@ -63,6 +63,12 @@ The installed skill loads the current workflow with:
 
 ```sh
 internalcot skill
+```
+
+For a skill-only installation without a persistent CLI, the discovery skill loads an npx-ready workflow with:
+
+```sh
+npx --yes internalcot@latest skill --npx
 ```
 
 ## Use the working-notes CLI directly

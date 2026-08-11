@@ -8,6 +8,7 @@ import { OpenAIModelClient } from "./openai-model.js";
 import { parseObserveOptions } from "./observe-options.js";
 import { readRuntimeSkill } from "./runtime-skill.js";
 import { runSetup } from "./setup-command.js";
+import { parseSkillOptions } from "./skill-options.js";
 import {
   formatWorkingNote,
   splitWorkingNoteOutput,
@@ -34,9 +35,13 @@ Options:
       --receipt     Print a machine-readable JSON receipt on stdout
   -h, --help        Show this help`;
 
-const SKILL_USAGE = `Usage: internalcot skill
+const SKILL_USAGE = `Usage: internalcot skill [options]
 
-Print the internalcot workflow instructions bundled with this CLI version.`;
+Print the internalcot workflow instructions bundled with this CLI version.
+
+Options:
+      --npx   Render note commands for the npx package runner
+  -h, --help  Show this help`;
 
 const OBSERVE_USAGE = `Usage: internalcot observe [options] [prompt]
 
@@ -87,14 +92,12 @@ async function runNote(args: ReadonlyArray<string>): Promise<void> {
 }
 
 async function runSkill(args: ReadonlyArray<string>): Promise<void> {
-  if (args.length === 1 && (args[0] === "--help" || args[0] === "-h")) {
+  const options = parseSkillOptions(args);
+  if (options.help) {
     process.stdout.write(`${SKILL_USAGE}\n`);
     return;
   }
-  if (args.length > 0) {
-    throw new Error('The "skill" command accepts no arguments. Run "internalcot skill --help".');
-  }
-  const instructions = await readRuntimeSkill();
+  const instructions = await readRuntimeSkill(options.runner);
   process.stdout.write(instructions.endsWith("\n") ? instructions : `${instructions}\n`);
 }
 
