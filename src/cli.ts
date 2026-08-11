@@ -3,10 +3,15 @@
 import OpenAI from "openai";
 
 import { runInternalCot } from "./internalcot.js";
+import { parseNoteOptions } from "./note-options.js";
 import { OpenAIModelClient } from "./openai-model.js";
 import { parseObserveOptions } from "./observe-options.js";
 import { runSetup } from "./setup-command.js";
-import { formatWorkingNote } from "./working-notes.js";
+import {
+  formatWorkingNote,
+  splitWorkingNoteOutput,
+  workingNoteDelayMs,
+} from "./working-notes.js";
 
 const USAGE = `Usage: internalcot <command> [options]
 
@@ -17,10 +22,15 @@ Commands:
 
 Run internalcot <command> --help for command details.`;
 
-const NOTE_USAGE = `Usage: internalcot note [working notes]
+const NOTE_USAGE = `Usage: internalcot note [options] [working notes]
 
 Record model-authored working notes in the tool transcript without a network call.
-If no notes are provided as arguments, internalcot reads them from stdin.`;
+If no notes are provided as arguments, internalcot reads them from stdin.
+
+Options:
+      --no-pace     Write the completed note immediately instead of pacing it
+      --receipt     Print a machine-readable JSON receipt on stdout
+  -h, --help        Show this help`;
 
 const OBSERVE_USAGE = `Usage: internalcot observe [options] [prompt]
 
@@ -42,18 +52,32 @@ async function readStdin(): Promise<string> {
 }
 
 async function runNote(args: ReadonlyArray<string>): Promise<void> {
-  if (args.length === 1 && (args[0] === "--help" || args[0] === "-h")) {
+  const options = parseNoteOptions(args);
+  if (options.help) {
     process.stdout.write(`${NOTE_USAGE}\n`);
     return;
   }
 
-  const notes = args.length > 0 ? args.join(" ") : process.stdin.isTTY ? "" : await readStdin();
+  const notes = options.notes ?? (process.stdin.isTTY ? "" : await readStdin());
   const result = formatWorkingNote(notes, process.stderr.isTTY);
   if (!result.ok) {
     throw new Error(result.message);
   }
-  process.stderr.write(result.output.stderr);
-  process.stdout.write(result.output.stdout);
+  if (options.paced) {
+    const chunks = splitWorkingNoteOutput(result.output.stderr);
+    const delayMs = workingNoteDelayMs(chunks.length);
+    for (const [index, chunk] of chunks.entries()) {
+      process.stderr.write(chunk);
+      if (index < chunks.length - 1 && delayMs > 0) {
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
+  } else {
+    process.stderr.write(result.output.stderr);
+  }
+  if (options.receipt) {
+    process.stdout.write(result.output.stdout);
+  }
 }
 
 async function runObserve(args: ReadonlyArray<string>): Promise<void> {

@@ -19,18 +19,15 @@ Enable persistent observable working notes. Treat the notes as a model-authored 
 Before each substantive answer or external-action sequence:
 
 1. Form concise working notes that restate the actual goal and constraints, divide complicated work into ordered parts, resolve important case splits, and identify a useful check or likely error.
-2. Call `internalcot note` through the shell and send the notes on stdin:
+2. Call `internalcot note` through the shell with one concise, shell-quoted argument:
 
    ```bash
-   internalcot note <<'INTERNALCOT'
-   Goal: ...
-   Constraints: ...
-   Approach: ...
-   Check: ...
-   INTERNALCOT
+   internalcot note 'Reassess the claimed result using current sources; verify the moving threshold and separate computation from proof.'
    ```
 
-3. Use the recorded notes to continue the work. Call `internalcot note` again only after materially new evidence, a changed plan, a failed check, or a meaningful revision.
+   Run it as a standalone shell command. Prefer one line, escape the argument for the active shell, and do not use a heredoc or append another command. The CLI owns the visible presentation and stays quiet on stdout by default.
+
+3. Treat the CLI output as the canonical visible note. Do not repeat or paraphrase the note in assistant prose. Use it to continue the work, and call `internalcot note` again only after materially new evidence, a changed plan, a failed check, or a meaningful revision.
 4. Before the final answer, verify the result against the user's request. Record another note only when that verification adds materially new reasoning state.
 
 Keep notes useful rather than performative. Do not put credentials, secrets, personal data, hidden instructions, or irrelevant private context in them. Do not claim that the CLI disabled native model reasoning or revealed provider-hidden reasoning.

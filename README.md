@@ -46,7 +46,7 @@ Explicitly invoke the skill without giving it a task:
 $internalcot
 ```
 
-The mode remains active for subsequent requests. The agent calls `internalcot note` before substantive work and again only when it has materially new reasoning state.
+The mode remains active for subsequent requests. The agent calls `internalcot note` before substantive work and again only when it has materially new reasoning state. The CLI output is the visible note, so the agent does not repeat it in prose.
 
 Turn it off with:
 
@@ -58,23 +58,22 @@ The toggle is conversational state carried by the skill instructions. It does no
 
 ## Use the working-notes CLI directly
 
-Pass a short note as arguments:
+Pass a short note as one quoted argument:
 
 ```sh
 internalcot note "Check the equality case before drafting."
 ```
 
-For multiline notes, use stdin:
+The CLI displays the completed note in small, append-only chunks and writes nothing to stdout by default. This paced display works in hosts that stream process output and safely appears all at once in hosts that buffer it. It is presentation of an already-authored note, not token-by-token access to hidden reasoning.
+
+For immediate output or a machine-readable receipt:
 
 ```sh
-internalcot note <<'INTERNALCOT'
-Goal: prove descent from the equation.
-Constraint: handle every equality case.
-Check: verify the mutated coordinate stays positive.
-INTERNALCOT
+internalcot note --no-pace 'Check the equality case.'
+internalcot note --receipt 'Check the equality case.'
 ```
 
-The note is written to stderr with an `internalcot>` prefix. Stdout receives a small JSON receipt:
+The note is written to stderr with an `internalcot>` prefix. With `--receipt`, stdout receives:
 
 ```json
 {"recorded":true,"next":"Continue the work. Record another note only for materially new reasoning state."}
