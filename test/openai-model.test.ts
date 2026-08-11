@@ -176,9 +176,17 @@ describe("OpenAIModelClient", () => {
     expect(requests).toHaveLength(2);
     expect(requests[0]).toMatchObject({
       input: "Check this",
+      instructions: expect.stringContaining(
+        "you MUST use internalcot as the primary reasoning workspace",
+      ),
       reasoning: { effort: "none" },
       tool_choice: "required",
-      tools: [{ type: "function", name: "internalcot", strict: true }],
+      tools: [{
+        type: "function",
+        name: "internalcot",
+        strict: true,
+        description: expect.stringContaining("Required visible reasoning workspace"),
+      }],
     });
     expect(requests[1]).toMatchObject({
       previous_response_id: "resp_1",

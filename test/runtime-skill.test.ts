@@ -10,6 +10,10 @@ describe("readRuntimeSkill", () => {
     expect(instructions).not.toContain("name: internalcot");
     expect(instructions).toContain("internalcot note '");
     expect(instructions).toContain("Keep the mode active for every response");
+    expect(instructions).toContain("you MUST reason through the work in internalcot");
+    expect(instructions).toContain("Before the final answer, call `internalcot note`");
+    expect(instructions).toContain("Do not substitute ordinary commentary");
+    expect(instructions).not.toContain("Form concise working notes");
     expect(instructions).not.toContain("{{internalcot}}");
   });
 

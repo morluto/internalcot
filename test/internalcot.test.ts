@@ -108,7 +108,8 @@ describe("runInternalCot", () => {
             callId: "call_1",
             output: JSON.stringify({
               recorded: 1,
-              next: "Use these notes to continue the derivation or produce the final answer.",
+              next:
+                "Continue the derivation. Call internalcot again for the next substantial reasoning phase or final verification; answer only after the checks are complete.",
             }),
           },
         ],

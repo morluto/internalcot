@@ -28,7 +28,8 @@ function toolOutput(call: ToolCall, recorded: number): string {
 
   return JSON.stringify({
     recorded,
-    next: "Use these notes to continue the derivation or produce the final answer.",
+    next:
+      "Continue the derivation. Call internalcot again for the next substantial reasoning phase or final verification; answer only after the checks are complete.",
   });
 }
 

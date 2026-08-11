@@ -4,7 +4,7 @@
 
 **Make agents show their full chain of thought.**
 
-`internalcot` adds an opt-in working-notes mode to Codex and Claude Code. Turn it on once and the agent externalizes its goals, constraints, plan changes, evidence, and checks in the normal tool transcript for the full conversation.
+`internalcot` adds an opt-in reasoning workspace to Codex and Claude Code. Turn it on once and the agent must externalize its problem decomposition, intermediate derivation, alternatives, evidence, uncertainty, and checks in the normal tool transcript for the full conversation.
 
 ```sh
 npx internalcot@latest setup
@@ -17,8 +17,11 @@ npx internalcot@latest setup
 
 › Recheck this proof. I think the published answer is wrong.
 
-• internalcot> Goal: reassess the proof instead of trusting its prior conclusion.
-  Check: verify the moving boundary and separate computation from theorem.
+• internalcot> Problem: reassess the proof instead of trusting its prior conclusion.
+  Derivation: the required factorials depend on p, so a fixed finite congruence
+  construction does not prove the claim. I need to test any proposed family
+  against the next factorial threshold.
+  Next check: locate the newest claimed proof, then verify that exact gap.
 ```
 
 The result is a persistent, readable chain of thought you can inspect as the agent works. The agent writes its reasoning into visible working notes.
@@ -49,7 +52,7 @@ Enable visible working notes:
 $internalcot
 ```
 
-The mode remains active for every response in the current conversation, including across tool calls and context compaction. The agent records a new note before substantive work and when new evidence, a failed check, or a changed plan materially alters its reasoning.
+The mode remains active for every response in the current conversation, including across tool calls and context compaction. The agent must record detailed reasoning before its first substantive tool or answer, continue the trace between reasoning phases, and record a final verification before answering.
 
 Disable it explicitly:
 
@@ -61,13 +64,18 @@ The mode is conversational state. It does not change the host's native reasoning
 
 ## What appears in the transcript
 
-A useful note captures the current reasoning state, not a polished explanation after the fact:
+A useful note exposes the derivation, not merely a polished goal/check summary:
 
 ```text
 internalcot> Goal: find why the refresh token is rejected only after rotation.
 Constraint: preserve existing session data and do not weaken replay protection.
-Evidence: the second request reads the old token family before the transaction commits.
-Check: reproduce through the public login flow before changing storage code.
+Derivation: rotation updates the token family inside a transaction. The second
+request can read the old family before that transaction commits, so validation
+compares the presented token against stale state. Weakening replay protection
+would hide the race rather than fix it.
+Alternatives: serialize rotation per family, or make the read participate in the
+same transactional boundary. First reproduce through the public login flow to
+distinguish those cases.
 ```
 
 The CLI prints notes in small, append-only chunks so hosts that stream process output can display them progressively. Hosts that buffer output show the same completed note at once. Either way, the note was authored before the command began; pacing is presentation, not access to hidden token generation.
@@ -114,7 +122,7 @@ internalcot note --receipt 'Check the equality case.'
 ```
 
 ```json
-{"recorded":true,"next":"Continue the work. Record another note only for materially new reasoning state."}
+{"recorded":true,"next":"Continue the derivation in internalcot. Record intermediate reasoning, alternatives, evidence, and checks before the next substantive step."}
 ```
 
 The command does not use the network, require an API key, or save notes separately. The coding agent's tool transcript is the record.
@@ -177,7 +185,7 @@ Verify that the packed `dist/cli.js` is executable and that both `skills/interna
 
 ## Credit
 
-The idea and original proof of concept are by [Can Bölük (@_can1357)](https://x.com/_can1357/status/2087228354399265125).
+The idea and [original Python proof of concept](https://pasta.can.ac/omegiligox.py) are by [Can Bölük (@_can1357)](https://x.com/_can1357/status/2087228354399265125).
 
 ## License
 

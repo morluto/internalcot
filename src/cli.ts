@@ -20,14 +20,14 @@ const USAGE = `Usage: internalcot <command> [options]
 Commands:
   setup                 Install the CLI and agent skill
   skill                 Print instructions matching this CLI version
-  note [working notes]  Record visible working notes locally
+  note [working notes]  Record detailed visible reasoning locally
   observe [prompt]      Run the API-backed observation POC
 
 Run internalcot <command> --help for command details.`;
 
 const NOTE_USAGE = `Usage: internalcot note [options] [working notes]
 
-Record model-authored working notes in the tool transcript without a network call.
+Record detailed model-authored reasoning in the tool transcript without a network call.
 If no notes are provided as arguments, internalcot reads them from stdin.
 
 Options:

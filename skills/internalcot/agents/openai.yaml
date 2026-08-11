@@ -1,6 +1,6 @@
 interface:
   display_name: "InternalCoT"
-  short_description: "Record visible model-authored working notes"
-  default_prompt: "Use $internalcot to enable visible working notes for subsequent responses."
+  short_description: "Expose detailed model-authored reasoning"
+  default_prompt: "Use $internalcot to enable detailed visible reasoning for subsequent responses."
 policy:
   allow_implicit_invocation: false

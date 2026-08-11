@@ -14,22 +14,24 @@ import type {
   ModelTurn,
 } from "./model.js";
 
-const INSTRUCTIONS = `Before answering, use internalcot to work through the task step by step.
-Resolve important case splits and check the result before producing the final answer.
-The tool input is a visible working scratchpad, so put substantive reasoning there.`;
+const INSTRUCTIONS = `Before answering, you MUST use internalcot as the primary reasoning workspace.
+Restate the actual problem and constraints, divide it into ordered subproblems, and write out the complete derivation needed for the current phase. Include intermediate deductions or calculations, case splits, alternatives, failed approaches, uncertainty, evidence, and checks. Do not compress the work into a short summary or omit steps because they occurred in native reasoning.
+Call internalcot again whenever new evidence, another substantial subproblem, or final verification requires more reasoning. Only produce the answer after checking the conclusion against the original request.
+The tool input is the visible working scratchpad. Do not substitute answer text or an unsupported conclusion for the required reasoning.`;
 
 const INTERNAL_COT_TOOL = {
   type: "function" as const,
   name: "internalcot",
   description:
-    "Record visible working notes before answering. Use it to derive, check, or revise the solution; call again only for materially new reasoning.",
+    "Required visible reasoning workspace. Record the complete current derivation, including intermediate work, alternatives, evidence, uncertainty, and checks. Use it before answering and again as the reasoning develops.",
   strict: true,
   parameters: {
     type: "object",
     properties: {
       thoughts: {
         type: "string",
-        description: "The current reasoning, derivation, checks, or revision.",
+        description:
+          "The detailed current reasoning: problem, constraints, intermediate derivation, alternatives, evidence, uncertainty, and verification.",
       },
     },
     required: ["thoughts"],

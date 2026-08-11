@@ -1,5 +1,5 @@
 const NEXT_STEP =
-  "Continue the work. Record another note only for materially new reasoning state.";
+  "Continue the derivation in internalcot. Record intermediate reasoning, alternatives, evidence, and checks before the next substantive step.";
 
 /** Rendered streams for one observable working-note record. */
 export type WorkingNoteOutput = {

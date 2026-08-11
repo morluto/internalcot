@@ -17,7 +17,8 @@ describe("formatWorkingNote", () => {
     expect(result.output.stderr).toBe("internalcot> Check the boundary case.\n");
     expect(JSON.parse(result.output.stdout)).toEqual({
       recorded: true,
-      next: "Continue the work. Record another note only for materially new reasoning state.",
+      next:
+        "Continue the derivation in internalcot. Record intermediate reasoning, alternatives, evidence, and checks before the next substantive step.",
     });
   });
 
