@@ -1,6 +1,6 @@
 {
   "name": "internalcot",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Make agents show their full chain of thought with persistent, visible working notes.",
   "license": "MIT",
   "author": "morluto",
